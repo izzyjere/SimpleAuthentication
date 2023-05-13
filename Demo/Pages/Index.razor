@@ -1,0 +1,17 @@
+﻿@page "/"
+
+<PageTitle>Index</PageTitle>
+
+<h1>Hello, @user?.UserName!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+<RedirectLogin/>
+@code{   
+    UserProxy? user;
+    protected  override async Task OnInitializedAsync()
+    {
+        user = await userService.GetCurrentUserAsync();       
+    }
+}

@@ -1,0 +1,95 @@
+﻿@page "/register"
+@attribute [AllowAnonymous]
+@layout LoginLayout
+<div class="container center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="text-primary">Create a new account</h4>
+            </div>
+            <div class="card-body">
+                <EditForm Model="@Model" OnValidSubmit="CreateUser" id="signupForm">
+                    <DataAnnotationsValidator />
+                    <div class="form-group mb-4">
+                        <label for="username">Username:</label>
+                        <InputText @bind-Value="Model.UserName" type="text" class="form-control" id="username" name="username" />
+                        <ValidationMessage For="()=>Model.UserName" />
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="email">Email:</label>
+                        <InputText @bind-Value="Model.Email" type="text" class="form-control" id="email" name="email" />
+                        <ValidationMessage For="()=>Model.Email" />
+                    </div>
+                    @if (Model.IncludeProfile)
+                    {
+                        <div class="form-group mb-4">
+                            <label for="firstname">First Name:</label>
+                            <input @bind-value="Model.FirstName" type="text" class="form-control" id="firstname" name="firstname">
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="lastname">Last Name:</label>
+                            <input @bind-value="Model.LastName" type="text" class="form-control" id="lastname" name="lastname">
+                        </div>
+                    }
+                    <div class="form-group mb-4">
+                        <label for="password">Password:</label>
+                        <InputText @bind-Value="Model.Password" type="password" class="form-control" id="password" name="password" />
+                        <ValidationMessage For="()=>Model.Password" />
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="confirmPassword">Confirm Password:</label>
+                        <InputText @bind-Value="Model.ConfirmPassword" type="password" class="form-control" id="confirmPassword"
+                                   name="confirmPassword" />
+                        <ValidationMessage For="()=>Model.ConfirmPassword" />
+                    </div>
+                    <div class="form-check mb-4">
+                        <InputCheckbox class="form-check-input"@bind-Value="Model.IncludeProfile"  id="flexCheckChecked" />
+                        <label class="form-check-label" for="flexCheckChecked">
+                            Include Profile
+                        </label>
+                    </div>
+                    <button title="Create your account." type="submit" class="btn btn-primary">Sign Up</button>
+                    <a title="Already have an account? Login." href="/login" class="btn btn-success">Login</a>
+                </EditForm>
+
+            </div>
+        </div>
+        @if (failed)
+        {
+            <div id="e-message" class="mt-4 pa-2">
+                <div class="alert alert-danger">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <i id="e-icon" class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="ml-4 mt-3">
+                            <p id="e-message-content">@errorMessage</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    RegisterModel Model = new();
+    bool failed;
+    string errorMessage = "";
+    async Task CreateUser()
+    {
+        var result = await userService.CreateAsync(Model);
+        if (!result.Succeeded)
+        {
+            failed = true;
+            errorMessage = result.Message;
+            StateHasChanged();
+        }
+        else
+        {
+            Model = new();
+            //Can navigate to login
+        }
+    }
+}
