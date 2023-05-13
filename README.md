@@ -3,7 +3,7 @@ Currently Supports Blazor Server & ASP.NET Core MVC. Next Release will support W
 ## How to set up
 Download Nuget Package
 ```powershell
-Install-Package  SimpleAuthentication
+Install-Package Codelabs.SimpleAuthentication
 ```
 For Blazor Server Apps You Need A Custom AuthenticationState Provider. Just Copy the class below and add it in your project.
 ```csharp
