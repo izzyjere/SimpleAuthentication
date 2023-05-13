@@ -10,6 +10,10 @@
     <RepositoryUrl>https://github.com/izzyjere/SimpleAuthentication</RepositoryUrl>
     <PackageTags>Authentication, Blazor</PackageTags>
     <Copyright>All Rights Reserved. Anyway You Can Modify </Copyright>
+    <PackageProjectUrl>https://github.com/izzyjere/SimpleAuthentication</PackageProjectUrl>
+    <PackageId>Codelabs.SimpleAuthentication</PackageId>
+    <Authors>Wisdom Jere</Authors>
+    <Company>Guavasoft Zambia</Company>
   </PropertyGroup>
 
   <ItemGroup>
