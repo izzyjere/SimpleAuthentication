@@ -1,9 +1,7 @@
 using Demo;
 using Demo.Data;
 
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 
 using SimpleAuthentication;
