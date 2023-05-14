@@ -98,13 +98,7 @@ namespace SimpleAuthentication
         public static WebApplicationBuilder UseSimpleAuthenticationJwt(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> userStoreOptions, Action<IdentityOptions>? identityOptions = null)
         {
             builder.Services.SimpleJwtConfigure(builder.Configuration);
-            var simpleJwtConfig = builder.Services.GetApplicationSettings(builder.Configuration);
-
-
-            if (simpleJwtConfig == null)
-            {
-                throw new ArgumentNullException(nameof(simpleJwtConfig.Secret));
-            }
+            var simpleJwtConfig = builder.Services.GetApplicationSettings(builder.Configuration)?? throw new ArgumentNullException(message:"Unable to find SimpleJwtConfig in appsettings.json",paramName:nameof(SimpleJwtConfig));
             var key = Encoding.ASCII.GetBytes(simpleJwtConfig.Secret);
             builder.Services.AddSimpleAuthenticationIdentity(userStoreOptions, identityOptions);
             builder.Services.AddScoped<ITokenService, TokenService>();
