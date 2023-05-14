@@ -12,9 +12,21 @@ namespace SimpleAuthentication
     internal class TokenService : ITokenService
     {
         readonly UserManager<User> _userManager;
+        
+
+        public TokenService(UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<Role> roleManager, ILogger<TokenService> logger, SimpleJwtConfig simpleJwtConfig)
+        {
+            _userManager=userManager;
+            _signInManager=signInManager;
+            _roleManager=roleManager;
+            _logger=logger;
+            secretKey=simpleJwtConfig.Secret;
+        }
+
         readonly SignInManager<User> _signInManager;
         readonly RoleManager<Role> _roleManager;
         readonly ILogger<TokenService> _logger;
+        readonly string secretKey;
         public async Task<Result<AccessToken>> GetAccessToken(TokenRequest tokenRequest)
         {
             try
@@ -131,7 +143,7 @@ namespace SimpleAuthentication
 
         private SigningCredentials GetSigningCredentials()
         {
-            var secret = Encoding.UTF8.GetBytes("");
+            var secret = Encoding.UTF8.GetBytes(secretKey);
             return new SigningCredentials(new SymmetricSecurityKey(secret), SecurityAlgorithms.HmacSha256);
         }
         private string GenerateEncryptedToken(SigningCredentials signingCredentials, IEnumerable<Claim> claims)
@@ -149,7 +161,7 @@ namespace SimpleAuthentication
             var tokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("")),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
                 ValidateIssuer = false,
                 ValidateAudience = false,
                 RoleClaimType = ClaimTypes.Role,
