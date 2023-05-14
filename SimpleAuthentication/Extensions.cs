@@ -18,10 +18,8 @@ namespace SimpleAuthentication
     {
         public static IServiceCollection AddSimpleAuthentication(this IServiceCollection services, Action<DbContextOptionsBuilder> userStoreOptions, Action<IdentityOptions>? identityOptions = null)
         {
-            services.AddSimpleAuthenticationIdentity(userStoreOptions, identityOptions);   
-            services.AddScoped<IAuthenticationService, AuthenticationService>()
-                    .AddScoped<IUserService, UserService>()
-                    .AddScoped<IRoleService, RoleService>();
+            services.AddSimpleAuthenticationIdentity(userStoreOptions, identityOptions);
+            services.AddScoped<IAuthenticationService, AuthenticationService>();
             return services;
         }
 
@@ -35,7 +33,7 @@ namespace SimpleAuthentication
         {
             var scope = app.ApplicationServices.CreateScope();
             var seeder = scope.ServiceProvider.GetRequiredService<ISeeder>();
-            if(seeder != null)
+            if (seeder != null)
             {
                 seeder.Seed();
             }
@@ -72,11 +70,13 @@ namespace SimpleAuthentication
             })
               .AddDefaultTokenProviders()
               .AddEntityFrameworkStores<IdentityDatabaseContext>();
+            services.AddScoped<IUserService, UserService>()
+                 .AddScoped<IRoleService, RoleService>();
             services.AddScoped<IUserClaimsPrincipalFactory<User>, SimpleClaimsPrincipalFactory>();
             services.AddScoped<ISeeder, DatabaseSeeder>();
             return services;
         }
-        public static IServiceCollection AddSimpleAuthenticationJwt(this IServiceCollection services, SimpleJwtConfig simpleJwtConfig,Action<DbContextOptionsBuilder> userStoreOptions, Action<IdentityOptions>? identityOptions = null)
+        public static IServiceCollection AddSimpleAuthenticationJwt(this IServiceCollection services, SimpleJwtConfig simpleJwtConfig, Action<DbContextOptionsBuilder> userStoreOptions, Action<IdentityOptions>? identityOptions = null)
         {
             if (simpleJwtConfig == null)
             {
