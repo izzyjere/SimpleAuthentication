@@ -19,7 +19,7 @@ namespace SimpleAuthentication
         }
         async Task<UserProxy> ToProxy(User user)
         {
-            var proxy = new UserProxy(user.Id, user.UserName, user.Email,user.IsActive, user.PhoneNumber, user.Profile);
+            var proxy = new UserProxy(user.Id, user.UserName, user.Email,user.IsActive, user.PhoneNumber, user.Profile,user.RefreshToken,user.RefreshTokenExpiryTime);
             proxy.AddRoles(await _userManager.GetRolesAsync(user));
             return proxy;
         }

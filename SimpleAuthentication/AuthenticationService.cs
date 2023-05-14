@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 
+using System.Security.Cryptography;
 using System.Text;
 
 namespace SimpleAuthentication
@@ -36,7 +37,10 @@ namespace SimpleAuthentication
                 var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, true);
                 if (result.Succeeded)
                 {
-                    var key = AuthenticationMiddleware.AnnounceLogin(request); 
+                    var key = AuthenticationMiddleware.AnnounceLogin(request);
+                    user.RefreshToken = GenerateRefreshToken();
+                    user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
+                    await userManager.UpdateAsync(user);
                     return LoginResult.Success(key, $"Logged in as {user.UserName}.");
                 }
                 else
@@ -48,6 +52,13 @@ namespace SimpleAuthentication
             {
                 return LoginResult.Failure("Your Account Is Locked Too many attempts. Try again after a few moments.");
             }
+        }
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
         }
         public async Task<Result<string>> ForgotPasswordAsync(string email)
         {

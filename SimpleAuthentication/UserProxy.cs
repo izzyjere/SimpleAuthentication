@@ -5,8 +5,10 @@
         public string Id { get;  }
         public bool IsActive { get;}
         public Profile? Profile { get; }
+        public string RefreshToken { get; }
+        public DateTime RefreshTokenExpiryTime { get; }
 
-        public UserProxy(string id, string userName, string email,bool isActive, string? phone, Profile? profile)
+        internal UserProxy(string id, string userName, string email, bool isActive, string? phone, Profile? profile, string refreshToken, DateTime refreshTokenExpiryTime)
         {
             Id=id;
             UserName=userName;
@@ -14,6 +16,8 @@
             IsActive=isActive;
             Phone=phone;
             Profile=profile;
+            RefreshToken=refreshToken;
+            RefreshTokenExpiryTime=refreshTokenExpiryTime;
         }
         List<string> _roles = new();
         internal void AddRoles(IEnumerable<string>? roles)
