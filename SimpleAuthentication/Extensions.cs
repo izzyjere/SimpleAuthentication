@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
 using Newtonsoft.Json;
 
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text;
 
@@ -76,16 +78,37 @@ namespace SimpleAuthentication
             services.AddScoped<ISeeder, DatabaseSeeder>();
             return services;
         }
-        public static IServiceCollection AddSimpleAuthenticationJwt(this IServiceCollection services, SimpleJwtConfig simpleJwtConfig, Action<DbContextOptionsBuilder> userStoreOptions, Action<IdentityOptions>? identityOptions = null)
+        private static SimpleJwtConfig GetApplicationSettings(
+     this IServiceCollection services,
+     IConfiguration configuration)
         {
+            var applicationSettingsConfiguration = configuration.GetSection(nameof(SimpleJwtConfig));
+            services.Configure<SimpleJwtConfig>(applicationSettingsConfiguration);
+            return applicationSettingsConfiguration.Get<SimpleJwtConfig>();
+        }
+
+        private static IServiceCollection SimpleJwtConfigure(
+          this IServiceCollection services,
+          IConfiguration configuration)
+        {
+            var applicationSettingsConfiguration = configuration.GetSection(nameof(SimpleJwtConfig));
+            services.Configure<SimpleJwtConfig>(applicationSettingsConfiguration);
+            return services;
+        }
+        public static WebApplicationBuilder UseSimpleAuthenticationJwt(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> userStoreOptions, Action<IdentityOptions>? identityOptions = null)
+        {
+            builder.Services.SimpleJwtConfigure(builder.Configuration);
+            var simpleJwtConfig = builder.Services.GetApplicationSettings(builder.Configuration);
+
+
             if (simpleJwtConfig == null)
             {
                 throw new ArgumentNullException(nameof(simpleJwtConfig.Secret));
             }
             var key = Encoding.ASCII.GetBytes(simpleJwtConfig.Secret);
-            services.AddSimpleAuthenticationIdentity(userStoreOptions, identityOptions);
-            services.AddScoped<ITokenService, TokenService>();
-            services
+            builder.Services.AddSimpleAuthenticationIdentity(userStoreOptions, identityOptions);
+            builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services
                 .AddAuthentication(authentication =>
                 {
                     authentication.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -146,8 +169,8 @@ namespace SimpleAuthentication
                         },
                     };
                 });
-            services.AddAuthorization();
-            return services;
+            builder.Services.AddAuthorization();
+            return builder;
         }
     }
 
