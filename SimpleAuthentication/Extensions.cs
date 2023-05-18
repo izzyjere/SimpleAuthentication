@@ -101,6 +101,7 @@ namespace SimpleAuthentication
             var simpleJwtConfig = builder.Services.GetApplicationSettings(builder.Configuration)?? throw new ArgumentNullException(message:"Unable to find SimpleJwtConfig in appsettings.json",paramName:nameof(SimpleJwtConfig));
             var key = Encoding.ASCII.GetBytes(simpleJwtConfig.Secret);
             builder.Services.AddSimpleAuthenticationIdentity(userStoreOptions, identityOptions);
+            builder.Services.AddSingleton(sp => new SecretConfigService(simpleJwtConfig));
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services
                 .AddAuthentication(authentication =>
@@ -164,6 +165,7 @@ namespace SimpleAuthentication
                     };
                 });
             builder.Services.AddAuthorization();
+            builder.Build().SeedSystemUser();
             return builder;
         }
     }

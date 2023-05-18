@@ -14,13 +14,13 @@ namespace SimpleAuthentication
         readonly UserManager<User> _userManager;
         
 
-        public TokenService(UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<Role> roleManager, ILogger<TokenService> logger, SimpleJwtConfig simpleJwtConfig)
+        public TokenService(UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<Role> roleManager, ILogger<TokenService> logger, SecretConfigService configService)
         {
             _userManager=userManager;
             _signInManager=signInManager;
             _roleManager=roleManager;
             _logger=logger;
-            secretKey=simpleJwtConfig.Secret;
+            secretKey=configService.SimpleJwtConfig.Secret;
         }
 
         readonly SignInManager<User> _signInManager;

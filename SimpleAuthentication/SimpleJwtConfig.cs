@@ -2,6 +2,6 @@
 {
     public class SimpleJwtConfig
     {
-        public string Secret { get; }
+        public string Secret { get; set; }
     }
 }

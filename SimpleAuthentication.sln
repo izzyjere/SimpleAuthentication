@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleAuthentication", "SimpleAuthentication\SimpleAuthentication.csproj", "{A12C1298-2736-480C-B274-EEE4B8E57C0C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleAuthentication", "SimpleAuthentication\SimpleAuthentication.csproj", "{A12C1298-2736-480C-B274-EEE4B8E57C0C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "Demo\Demo.csproj", "{536951EB-A50D-4289-A4C9-449FBFC3BF94}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo", "Demo\Demo.csproj", "{536951EB-A50D-4289-A4C9-449FBFC3BF94}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApiDemo", "WebApiDemo\WebApiDemo.csproj", "{CEEDB6E2-41F5-404A-8626-42BBEB343517}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{536951EB-A50D-4289-A4C9-449FBFC3BF94}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{536951EB-A50D-4289-A4C9-449FBFC3BF94}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{536951EB-A50D-4289-A4C9-449FBFC3BF94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEEDB6E2-41F5-404A-8626-42BBEB343517}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEEDB6E2-41F5-404A-8626-42BBEB343517}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEEDB6E2-41F5-404A-8626-42BBEB343517}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEEDB6E2-41F5-404A-8626-42BBEB343517}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
