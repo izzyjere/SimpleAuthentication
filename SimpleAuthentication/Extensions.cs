@@ -164,8 +164,7 @@ namespace SimpleAuthentication
                         },
                     };
                 });
-            builder.Services.AddAuthorization();
-            builder.Build().SeedSystemUser();
+            builder.Services.AddAuthorization();          
             return builder;
         }
     }
