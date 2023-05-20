@@ -24,6 +24,7 @@ namespace SimpleAuthentication
             builder.Entity<Role>(e =>
             {
                 e.ToTable("Roles", "Identity");
+                e.HasData(new Role("Administrator", "Default role for the system super user."));
             });
             builder.Entity<IdentityUserRole<string>>(e =>
             {
