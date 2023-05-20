@@ -1,5 +1,5 @@
 # SimpleAuthentication
-Currently Supports Blazor Server & ASP.NET Core MVC, Web API JWT. Next Release will include a clientside package to support WASM
+Currently Supports Blazor Server & ASP.NET Core MVC, Web API JWT. Next Release will include a clientside package to support WASM/MAUI - Blazor Hybrid.
 ## How to set up
 Download Nuget Package
 ```powershell
