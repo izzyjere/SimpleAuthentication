@@ -12,7 +12,7 @@ namespace SimpleAuthentication
     internal class TokenService : ITokenService
     {
         readonly UserManager<User> _userManager;
-        
+
 
         public TokenService(UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<Role> roleManager, ILogger<TokenService> logger, SecretConfigService configService)
         {
@@ -53,7 +53,7 @@ namespace SimpleAuthentication
                     var result = await _signInManager.CheckPasswordSignInAsync(user, tokenRequest.Password, true);
                     if (result.Succeeded)
                     {
-                        
+
                         user.RefreshToken = GenerateRefreshToken();
                         user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
                         await _userManager.UpdateAsync(user);
@@ -68,7 +68,7 @@ namespace SimpleAuthentication
                 }
                 else
                 {
-                    return  Result<AccessToken>.Failure("Your has been locked. Please contact your admin");
+                    return Result<AccessToken>.Failure("Your has been locked. Please contact your admin");
                 }
             }
             catch (Exception e)
@@ -83,7 +83,7 @@ namespace SimpleAuthentication
         {
             if (model is null)
             {
-                return  Result<AccessToken>.Failure("Invalid Client Token");
+                return Result<AccessToken>.Failure("Invalid Client Token");
             }
             var claimsPrincipal = GetPrincipalFromExpiredToken(model.Token);
             var userEmail = claimsPrincipal.GetEmail();
@@ -94,12 +94,12 @@ namespace SimpleAuthentication
             }
             if (user.RefreshToken != model.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
             {
-                return  Result<AccessToken>.Failure("Invalid Client Token.");
+                return Result<AccessToken>.Failure("Invalid Client Token.");
             }
             var token = GenerateEncryptedToken(GetSigningCredentials(), await GetClaimsAsync(user));
             user.RefreshToken = GenerateRefreshToken();
             await _userManager.UpdateAsync(user);
-            var response = new AccessToken(token,DateTime.Now.AddMinutes(60),user.RefreshToken,user.RefreshTokenExpiryTime);
+            var response = new AccessToken(token, DateTime.Now.AddMinutes(60), user.RefreshToken, user.RefreshTokenExpiryTime);
             return Result<AccessToken>.Success(response);
         }
         private async Task<string> GenerateJwtAsync(User user)
@@ -113,6 +113,17 @@ namespace SimpleAuthentication
             var roles = await _userManager.GetRolesAsync(user);
             var roleClaims = new List<Claim>();
             var permissionClaims = new List<Claim>();
+            var profileClaims = new List<Claim>();
+            if (user.Profile != null)
+            {
+                profileClaims.Add(new Claim(ClaimTypes.GivenName, user.Profile.FirstName));
+                profileClaims.Add(new Claim(ClaimTypes.Surname, user.Profile.LastName));
+                if (user.Profile.MiddleName!= null)
+                {
+                    profileClaims.Add(new Claim(nameof(Profile.MiddleName), user.Profile.MiddleName));
+                }
+
+            }
             foreach (var role in roles)
             {
                 roleClaims.Add(new Claim(ClaimTypes.Role, role));
@@ -129,6 +140,7 @@ namespace SimpleAuthentication
     }
             .Union(userClaims)
             .Union(roleClaims)
+            .Union(profileClaims)
             .Union(permissionClaims);
 
             return claims;
