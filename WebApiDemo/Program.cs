@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+//Package Already Ships with Swagger.
 builder.UseSimpleAuthenticationJwt(options =>
 {
     options.UseSqlite("Data Source = demo.db");
@@ -45,6 +45,7 @@ app.MapGet("/weatherforecast",[Authorize] () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+//JWT Token EndPoint
 app.MapPost("/token", async (ITokenService tokenService, [FromBody] TokenRequest request) =>
 {
     return await tokenService.GetAccessToken(request);
