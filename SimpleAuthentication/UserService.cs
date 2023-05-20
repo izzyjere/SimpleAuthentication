@@ -55,7 +55,7 @@ namespace SimpleAuthentication
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext?.User?.Identity?.Name == null)
             {
-                return await GetByUserNameAsync("System");
+                return await GetByUserNameAsync("system");
             }
             return await GetByUserNameAsync(httpContext.User.Identity.Name);
         }

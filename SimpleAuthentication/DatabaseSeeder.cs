@@ -8,11 +8,13 @@ namespace SimpleAuthentication
         readonly UserManager<User> _userManager; 
         readonly IdentityDatabaseContext _context;
         readonly ILogger<DatabaseSeeder> _logger;
-        public DatabaseSeeder(UserManager<User> userManager, IdentityDatabaseContext context,  ILogger<DatabaseSeeder> logger)
+        readonly RoleManager<Role> _roleManager;
+        public DatabaseSeeder(UserManager<User> userManager,RoleManager<Role> roleManager, IdentityDatabaseContext context,  ILogger<DatabaseSeeder> logger)
         {
             _userManager=userManager;
             _context=context;
             _logger=logger;
+            _roleManager = roleManager;
         }
 
         public async void Seed()
@@ -23,6 +25,14 @@ namespace SimpleAuthentication
         private void AddSystemUser()
         {
            Task.Run(async () => {
+
+               var role = await _roleManager.FindByNameAsync("Administrator");
+               if(role == null)
+               {
+                   role = new Role("Administrator", "Default role for the system super user.");
+                   await _roleManager.CreateAsync(role);
+               }
+               else { }
               
                var system = await _userManager.FindByNameAsync("system");
                if(system != null) {
@@ -43,7 +53,7 @@ namespace SimpleAuthentication
                var result = await _userManager.CreateAsync(system, "password"); ;
                if(result.Succeeded)
                {
-                   await _userManager.AddToRoleAsync(system, "Administrator");
+                   await _userManager.AddToRoleAsync(system, role.Name);
                    _logger.LogInformation("Seeded default system user.");
                }                         
            

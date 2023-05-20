@@ -14,7 +14,7 @@ namespace SimpleAuthentication
         {
             builder.Entity<User>(e =>
             {
-                e.ToTable("Users", "Identity");
+                e.ToTable(name: "Users", "Identity");
                 e.OwnsOne(u => u.Profile, p =>
                 {
                     p.ToTable("UserProfiles", "Identity");                   
@@ -24,7 +24,7 @@ namespace SimpleAuthentication
             builder.Entity<Role>(e =>
             {
                 e.ToTable("Roles", "Identity");
-                e.HasData(new Role("Administrator", "Default role for the system super user."));
+             
             });
             builder.Entity<IdentityUserRole<string>>(e =>
             {

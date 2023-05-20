@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 using Newtonsoft.Json;
 
@@ -94,7 +95,7 @@ namespace SimpleAuthentication
             services.Configure<SimpleJwtConfig>(applicationSettingsConfiguration);
             return services;
         }
-        public static WebApplicationBuilder UseSimpleAuthenticationJwt(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> userStoreOptions, Action<IdentityOptions>? identityOptions = null)
+        public static WebApplicationBuilder UseSimpleAuthenticationJwt(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> userStoreOptions, Action<IdentityOptions>? identityOptions = null, OpenApiInfo? openApiInfo = null)
         {
             builder.Services.SimpleJwtConfigure(builder.Configuration);
             var simpleJwtConfig = builder.Services.GetApplicationSettings(builder.Configuration)?? throw new ArgumentNullException(message:"Unable to find SimpleJwtConfig in appsettings.json",paramName:nameof(SimpleJwtConfig));
@@ -163,8 +164,70 @@ namespace SimpleAuthentication
                         },
                     };
                 });
-            builder.Services.AddAuthorization();          
+            builder.Services.AddAuthorization();
+            builder.Services.RegisterSwagger(openApiInfo);
+            var scope = builder.Services.BuildServiceProvider().CreateScope();
+            var seeder = scope.ServiceProvider.GetService<ISeeder>();
+            seeder?.Seed();
             return builder;
+        }
+        internal static IServiceCollection RegisterSwagger(this IServiceCollection services, OpenApiInfo? openApiInfo = null)
+        {
+            services.AddEndpointsApiExplorer();
+            services.AddSwaggerGen(async c =>
+            {
+                //TODO - Lowercase Swagger Documents
+                //c.DocumentFilter<LowercaseDocumentFilter>();
+                //Refer - https://gist.github.com/rafalkasa/01d5e3b265e5aa075678e0adfd54e23f
+
+                // include all project's xml comments
+                var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    if (!assembly.IsDynamic)
+                    {
+                        var xmlFile = $"{assembly.GetName().Name}.xml";
+                        var xmlPath = Path.Combine(baseDirectory, xmlFile);
+                        if (File.Exists(xmlPath))
+                        {
+                            c.IncludeXmlComments(xmlPath);
+                        }
+                    }
+                }
+              
+                c.SwaggerDoc("v1", openApiInfo??new OpenApiInfo
+                {
+                    Version = "v1",
+                    Title = "SIMPLE JWT API"
+                });    
+
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    Description = "Input your Bearer token in this format - Bearer {your token here} to access this API",
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer",
+                    },
+                    Scheme = "Bearer",
+                    Name = "Bearer",
+                    In = ParameterLocation.Header,
+                }, new List<string>()
+            },
+            });
+            });
+            return services;
         }
     }
 
