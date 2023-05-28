@@ -7,13 +7,13 @@ Install-Package Codelabs.SimpleAuthentication
 ```
 For Blazor Server Apps You Need A Custom AuthenticationState Provider. Just Copy the class below and add it in your project.
 ```csharp
- public class RevalidatingIdentityAuthenticationStateProvider<TUser>
-        : RevalidatingServerAuthenticationStateProvider where TUser : class
+     internal class ServerSideAuthenticationStateProvider
+    : RevalidatingServerAuthenticationStateProvider 
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IdentityOptions _options;
 
-        public RevalidatingIdentityAuthenticationStateProvider(
+        public ServerSideAuthenticationStateProvider(
             ILoggerFactory loggerFactory,
             IServiceScopeFactory scopeFactory,
             IOptions<IdentityOptions> optionsAccessor)
@@ -32,7 +32,7 @@ For Blazor Server Apps You Need A Custom AuthenticationState Provider. Just Copy
             var scope = _scopeFactory.CreateScope();
             try
             {
-                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TUser>>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
                 return await ValidateSecurityStampAsync(userManager, authenticationState.User);
             }
             finally
@@ -48,7 +48,7 @@ For Blazor Server Apps You Need A Custom AuthenticationState Provider. Just Copy
             }
         }
 
-        private async Task<bool> ValidateSecurityStampAsync(UserManager<TUser> userManager, ClaimsPrincipal principal)
+        private async Task<bool> ValidateSecurityStampAsync(UserManager<User> userManager, ClaimsPrincipal principal)
         {
             var user = await userManager.GetUserAsync(principal);
             if (user == null)
@@ -67,12 +67,12 @@ For Blazor Server Apps You Need A Custom AuthenticationState Provider. Just Copy
             }
         }
     }
+}
 ```
 Next Install <code>Microsoft.EntityFrameworkCore.Tools</code> and the Database provider of your choice in the demo
 <code>Microsoft.EntityFrameworkCore.SQLite</code> is used. <br/>
 Lastly in your <code>Program.cs</code> configure SimpleAuthentication Like below.
 ```csharp
-using Demo;
 using Demo.Data;
 
 using Microsoft.AspNetCore.Components.Authorization;
@@ -87,9 +87,9 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSimpleAuthentication(userStoreOptions =>
 {
-    userStoreOptions.UseSqlite("Data Source = Identity.db");//Database to use
+    userStoreOptions.UseSqlite("Data Source = Identity.db");
 });
-builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<User>>();
+builder.Services.AddScoped<AuthenticationStateProvider, ServerSideAuthenticationStateProvider>();
 builder.Services.AddSingleton<WeatherForecastService>();
 
 var app = builder.Build();
@@ -111,7 +111,7 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseSimpleAuthentication();//important
+app.UseSimpleAuthentication();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
@@ -252,4 +252,19 @@ internal record WeatherForecast(DateTime Date, int TemperatureC, string? Summary
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
 ```
-That's it. For more info see <a href="https://github.com/izzyjere/SimpleAuthentication" target="_blank">Git Hub</a>
+If you are going to use JWT for your WebApis, You will need a random string of at least 256 bytes to be used as a secret key in JWT Generation and Decoding. This key is to be placed in appsettings.json as shown below.
+```json
+{
+  "SimpleJwtConfig": {
+    "Secret": "SDKSDHKSDHSIKSIFN2328386sdisadq55654esdw"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+}
+```
+That's it. For more info see  Demos on [GitHub](https://github.com/izzyjere/SimpleAuthentication)

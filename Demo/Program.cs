@@ -15,7 +15,7 @@ builder.Services.AddSimpleAuthentication(userStoreOptions =>
 {
     userStoreOptions.UseSqlite("Data Source = Identity.db");
 });
-builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<User>>();
+builder.Services.AddScoped<AuthenticationStateProvider, ServerSideAuthenticationStateProvider>();
 builder.Services.AddSingleton<WeatherForecastService>();
 
 var app = builder.Build();
