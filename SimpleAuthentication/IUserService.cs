@@ -12,6 +12,7 @@
         Task<UserProxy?> GetByIdAsync(string id);        
         Task<UserProxy?> GetByUserNameAsync(string userName);
         Task<UserProxy?> GetCurrentUserAsync();
+        Task<Result<string>> GetEmailConfirmationCodeAsync(string email);
         Task<Result> UpdateAsync(string id, string email, string phoneNumber);
         Task<Result> UpdateUserProfile(string id, string firstName, string lastName, string? middleName, string? avatarUrl);
     }

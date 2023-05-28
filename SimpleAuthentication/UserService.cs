@@ -214,5 +214,19 @@ namespace SimpleAuthentication
             }
             return Result.Failure(result.Errors.First().Description);
         }
+        public async Task<Result<string>> GetEmailConfirmationCodeAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return Result<string>.Failure("Something went wrong.");
+            }
+            if (user.EmailConfirmed)
+            {
+                return Result<string>.Failure("User email already confirmed.");
+            }
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            return Result<string>.Success(code);    
+        }
     }
 }
