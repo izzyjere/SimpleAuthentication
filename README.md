@@ -119,6 +119,21 @@ app.MapFallbackToPage("/_Host");
 app.Run();
 
 ```
+To Futher Customize Identity You can provide identityOptions paramter as shown below:
+```csharp
+builder.Services.AddSimpleAuthentication(dbOptions =>
+{
+    dbOptions.UseSqlite("Data Source = demo.db");
+
+}, identityOptions => {
+
+    identityOptions.SignIn.RequireConfirmedEmail = true;
+    identityOptions.Password.RequiredLength = 8;
+    identityOptions.Password.RequireDigit = false;
+    identityOptions.Password.RequireUppercase = false;
+    identityOptions.Password.RequireLowercase = false;
+});
+```
 The code below shows a demo login page using Razor.
 ```razor
 @page "/login"
