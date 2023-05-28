@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
+using System.Text;
 
 namespace SimpleAuthentication
 {
@@ -226,6 +229,7 @@ namespace SimpleAuthentication
                 return Result<string>.Failure("User email already confirmed.");
             }
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
             return Result<string>.Success(code);    
         }
     }
