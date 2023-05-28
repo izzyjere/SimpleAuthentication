@@ -82,7 +82,7 @@ namespace SimpleAuthentication
                 // Don't reveal that the user does not exist
                 return Result.Failure("An Error has occured!");
             }
-
+            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
             var result = await userManager.ResetPasswordAsync(user, code,password);
             if (result.Succeeded)
             {
@@ -90,7 +90,7 @@ namespace SimpleAuthentication
             }
             else
             {
-                return Result.Failure("An Error has occured!");
+                return Result.Failure(result.Errors.FirstOrDefault()?.Description??"An error has occured.");
             }
         }
         public async Task<Result> ConfirmEmailAsync(string userId, string code)
