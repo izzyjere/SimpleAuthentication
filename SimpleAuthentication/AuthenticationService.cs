@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 
+using System.ComponentModel.DataAnnotations;
+using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -19,7 +21,16 @@ namespace SimpleAuthentication
 
         public async Task<LoginResult> LoginAsync(LoginRequest request)
         {
-            var user = await userManager.FindByNameAsync(request.UserName);
+            User? user;
+            if (MailAddress.TryCreate(request.UserName, out var email))
+            {
+                 user = await userManager.FindByEmailAsync(email.Address);
+            }
+            else
+            {
+                user = await userManager.FindByNameAsync(request.UserName);
+            }
+             
             if (user == null)
             {
                 return LoginResult.Failure("User Not Found.");

@@ -58,15 +58,7 @@ namespace SimpleAuthentication
                 }
                 else
                 {
-                    options.Password.RequiredLength = 8;
-                    options.Password.RequireNonAlphanumeric = false;
-                    options.Password.RequireDigit = false;
-                    options.Password.RequireLowercase = false;
-                    options.Password.RequireUppercase = false;
-                    options.User.RequireUniqueEmail = true;
                     options.SignIn.RequireConfirmedEmail = false;
-                    options.SignIn.RequireConfirmedAccount = false;
-                    options.SignIn.RequireConfirmedPhoneNumber = false;
                 }
 
             })
