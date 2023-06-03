@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SimpleAuthentication
 {
-    public class IdentityDatabaseContext : IdentityDbContext<User,Role,string>
+    internal class IdentityDatabaseContext : IdentityDbContext<User,Role,string>
     {
         public IdentityDatabaseContext(DbContextOptions<IdentityDatabaseContext> options): base(options)
         {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace SimpleAuthentication
@@ -19,7 +20,7 @@ namespace SimpleAuthentication
 
         public async void Seed()
         {
-             await _context.Database.EnsureCreatedAsync();
+             await _context.Database.MigrateAsync();
              AddSystemUser();
         }
         private void AddSystemUser()
