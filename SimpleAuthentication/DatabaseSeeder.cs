@@ -20,7 +20,7 @@ namespace SimpleAuthentication
 
         public async void Seed()
         {
-             await _context.Database.MigrateAsync();
+             await _context.Database.EnsureCreatedAsync();
              AddSystemUser();
         }
         private void AddSystemUser()
