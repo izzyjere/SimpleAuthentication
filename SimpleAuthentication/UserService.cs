@@ -11,12 +11,14 @@ namespace SimpleAuthentication
     internal class UserService : IUserService
     {
         readonly UserManager<User> _userManager;
+        readonly RoleManager<Role> _roleManager;
         readonly ILogger<UserService> _logger;
         readonly IHttpContextAccessor _httpContextAccessor;
-        public UserService(UserManager<User> userManager, IHttpContextAccessor httpContextAccessor, ILogger<UserService> logger)
+        public UserService(UserManager<User> userManager,RoleManager<Role> roleManager, IHttpContextAccessor httpContextAccessor, ILogger<UserService> logger)
         {
 
             _userManager=userManager;
+            _roleManager = roleManager;
             _httpContextAccessor=httpContextAccessor;
             _logger=logger;
         }
@@ -78,7 +80,7 @@ namespace SimpleAuthentication
             if (user == null)
             {
                 return Result.Failure("Error: User not found.");
-            }
+            }              
             var result = await _userManager.AddToRoleAsync(user, roleName);
             return result.Succeeded ? Result.Success("User successfully added to role.") : Result.Failure(result.Errors.First().Description);
 
@@ -213,6 +215,17 @@ namespace SimpleAuthentication
             if (result.Succeeded)
             {
                 _logger.LogInformation("User created with password.");
+                if(!string.IsNullOrEmpty(registerModel.Role))
+                {
+                    var role = await _roleManager.FindByNameAsync(registerModel.Role);
+                    if (role == null)
+                    {
+                        _logger.LogWarning("Role {0} was not found. attempting to create it.", registerModel.Role);
+                        await _roleManager.CreateAsync(new Role(registerModel.Role, registerModel.Role));
+                    }
+                    else { }
+                    await AddUserToRoleAsync(registerModel.Role, user.UserName);
+                }
                 return Result.Success("User created successfully.");
             }
             return Result.Failure(result.Errors.First().Description);

@@ -28,5 +28,9 @@ namespace SimpleAuthentication
         /// Default true
         /// </summary>
         public bool AutoConfirm { get; set; } = true;
+         /// <summary>
+         /// If one doesn't exist we'll attempt to create it.
+         /// </summary>
+        public string? Role { get; set; }
     }
 }
