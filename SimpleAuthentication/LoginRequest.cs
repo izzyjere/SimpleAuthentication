@@ -7,9 +7,9 @@ namespace SimpleAuthentication
         public DateTime LoginStarted { get;  set; }
 
         [Required]
-        public string UserName { get; set; }
+        public virtual string UserName { get; set; }
         [Required]
-        public string Password { get; set; }
+        public virtual string Password { get; set; }
         public bool RememberMe { get; set; }
         public string? ReturnUrl { get; set; }
         public string? TwoFactorCode { get; set; }

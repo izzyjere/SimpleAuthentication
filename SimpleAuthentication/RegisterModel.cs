@@ -5,21 +5,21 @@ namespace SimpleAuthentication
     public class RegisterModel
     {
         [Required]
-        public string UserName { get; set; }
+        public virtual string UserName { get; set; }
         [Required]
         [MinLength(8)]
-        public string Password { get; set; }
+        public virtual string Password { get; set; }
         [EmailAddress]
         [Required]
-        public string Email { get; set; }
+        public virtual string Email { get; set; }
         [Required]
         [Compare(nameof(Password))]
-        public string ConfirmPassword { get; set; }
-        public string? Phone { get; set; }
-        public string? FirstName { get; set; }
-        public string? MiddleName { get; set; }
-        public string? LastName { get; set; }
-        public string? AvatarUrl { get; set; }
+        public virtual string ConfirmPassword { get; set; }
+        public virtual string? Phone { get; set; }
+        public virtual string? FirstName { get; set; }
+        public virtual string? MiddleName { get; set; }
+        public virtual string? LastName { get; set; }
+        public virtual string? AvatarUrl { get; set; }
         /// <summary>
         /// Default false
         /// </summary>
@@ -31,6 +31,6 @@ namespace SimpleAuthentication
          /// <summary>
          /// If one doesn't exist we'll attempt to create it.
          /// </summary>
-        public string? Role { get; set; }
+        public virtual string? Role { get; set; }
     }
 }
