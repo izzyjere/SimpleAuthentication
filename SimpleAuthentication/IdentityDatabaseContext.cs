@@ -26,6 +26,16 @@ namespace SimpleAuthentication
                 e.ToTable("Roles", "Identity");
              
             });
+            builder.Entity<IdentityRoleClaim<string>>(e =>
+            {
+                e.ToTable("RoleClaims", "Identity");
+                e.HasKey(e => e.Id);
+            });   
+            builder.Entity<IdentityUserClaim<string>>(e =>
+            {
+                e.ToTable("UserClaims", "Identity");
+                e.HasKey(e => e.Id);
+            });
             builder.Entity<IdentityUserRole<string>>(e =>
             {
                 e.ToTable("UserRoles", "Identity");

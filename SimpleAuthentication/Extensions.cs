@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -6,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 
 using Newtonsoft.Json;
 
@@ -18,9 +18,10 @@ namespace SimpleAuthentication
 {
     public static class Extensions
     {
-        public static IServiceCollection AddSimpleAuthentication(this IServiceCollection services, Action<DbContextOptionsBuilder> userStoreOptions, Action<IdentityOptions>? identityOptions = null)
+        public static IServiceCollection AddSimpleAuthentication(this IServiceCollection services, Action<DbContextOptionsBuilder> userStoreOptions, Action<IdentityOptions>? identityOptions = null, bool useJwt = false)
         {
-            services.AddSimpleAuthenticationIdentity(userStoreOptions, identityOptions);
+            services.AddSimpleAuthenticationIdentity(userStoreOptions, identityOptions, useJwt);
+            services.AddAuthorization();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             return services;
         }
@@ -28,80 +29,32 @@ namespace SimpleAuthentication
         public static IApplicationBuilder UseSimpleAuthentication(this IApplicationBuilder app)
         {
             app.UseMiddleware<AuthenticationMiddleware>();
-            app.SeedSystemUser();
+            var scope = app.ApplicationServices.CreateScope();
+            var _context = scope.ServiceProvider.GetRequiredService<IdentityDatabaseContext>();
+            _context.Database.EnsureCreated();
             return app;
         }
-        internal static IApplicationBuilder SeedSystemUser(this IApplicationBuilder app)
+        private static AuthenticationBuilder AddSimpleAuth(this IServiceCollection services, bool useJwt = false)
         {
-            var scope = app.ApplicationServices.CreateScope();
-            var seeder = scope.ServiceProvider.GetRequiredService<ISeeder>();
-            if (seeder != null)
+            var builder = services.AddAuthentication();                                                
+            SimpleJwtConfig? config;
+            IConfigurationSection? jwtConfiguration;
+            if (useJwt)
             {
-                seeder.Seed();
+                jwtConfiguration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("SimpleJwtConfig")??throw new Exception("Required section 'SimpleJwtConfig' is missing from appsettings.json");
+                builder.Services.Configure<SimpleJwtConfig>(jwtConfiguration);
+                config  = jwtConfiguration.Get<SimpleJwtConfig>();
             }
             else
             {
-                throw new ArgumentException("Simple authentication hasn't been configured properly.");
+                config = null;
             }
-            return app;
-        }
-        private static IServiceCollection AddSimpleAuthenticationIdentity(this IServiceCollection services, Action<DbContextOptionsBuilder> userStoreOptions, Action<IdentityOptions>? identityOptions = null)
-        {
-            services.AddHttpContextAccessor();
-            services.AddAuthentication();
-            services.AddDbContext<IdentityDatabaseContext>(userStoreOptions, ServiceLifetime.Transient);
-            services.AddIdentity<User, Role>(options =>
+            if (config != null && !string.IsNullOrEmpty(config.Secret))
             {
-                if (identityOptions != null)
-                {
-                    identityOptions(options);
-                }
-                else
-                {
-                    options.SignIn.RequireConfirmedEmail = false;
-                }
-
-            })
-              .AddDefaultTokenProviders()
-              .AddEntityFrameworkStores<IdentityDatabaseContext>();
-            services.AddScoped<IUserService, UserService>()
-                 .AddScoped<IRoleService, RoleService>();
-            services.AddScoped<IUserClaimsPrincipalFactory<User>, SimpleClaimsPrincipalFactory>();
-            services.AddScoped<ISeeder, DatabaseSeeder>();
-            return services;
-        }
-        private static SimpleJwtConfig GetApplicationSettings(
-     this IServiceCollection services,
-     IConfiguration configuration)
-        {
-            var applicationSettingsConfiguration = configuration.GetSection(nameof(SimpleJwtConfig));
-            services.Configure<SimpleJwtConfig>(applicationSettingsConfiguration);
-            return applicationSettingsConfiguration.Get<SimpleJwtConfig>();
-        }
-
-        private static IServiceCollection SimpleJwtConfigure(
-          this IServiceCollection services,
-          IConfiguration configuration)
-        {
-            var applicationSettingsConfiguration = configuration.GetSection(nameof(SimpleJwtConfig));
-            services.Configure<SimpleJwtConfig>(applicationSettingsConfiguration);
-            return services;
-        }
-        public static WebApplicationBuilder UseSimpleAuthenticationJwt(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> userStoreOptions, Action<IdentityOptions>? identityOptions = null, OpenApiInfo? openApiInfo = null)
-        {
-            builder.Services.SimpleJwtConfigure(builder.Configuration);
-            var simpleJwtConfig = builder.Services.GetApplicationSettings(builder.Configuration)?? throw new ArgumentNullException(message:"Unable to find SimpleJwtConfig in appsettings.json",paramName:nameof(SimpleJwtConfig));
-            var key = Encoding.ASCII.GetBytes(simpleJwtConfig.Secret);
-            builder.Services.AddSimpleAuthenticationIdentity(userStoreOptions, identityOptions);
-            builder.Services.AddSingleton(sp => new SecretConfigService(simpleJwtConfig));
-            builder.Services.AddScoped<ITokenService, TokenService>();
-            builder.Services
-                .AddAuthentication(authentication =>
-                {
-                    authentication.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    authentication.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(bearer =>
+                builder.Services.AddSingleton(sp => new SecretConfigService(config));
+                builder.Services.AddScoped<ITokenService, TokenService>();
+                var key = Encoding.ASCII.GetBytes(config.Secret);
+                builder.AddJwtBearer(bearer =>
                 {
                     bearer.RequireHttpsMetadata = false;
                     bearer.SaveToken = true;
@@ -156,69 +109,31 @@ namespace SimpleAuthentication
                         },
                     };
                 });
-            builder.Services.AddAuthorization();
-            builder.Services.RegisterSwagger(openApiInfo);
-            var scope = builder.Services.BuildServiceProvider().CreateScope();
-            var seeder = scope.ServiceProvider.GetService<ISeeder>();
-            seeder?.Seed();
+            }
             return builder;
         }
-        internal static IServiceCollection RegisterSwagger(this IServiceCollection services, OpenApiInfo? openApiInfo = null)
+        private static IServiceCollection AddSimpleAuthenticationIdentity(this IServiceCollection services, Action<DbContextOptionsBuilder> userStoreOptions, Action<IdentityOptions>? identityOptions = null, bool useJwt = false)
         {
-            services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen(async c =>
+            services.AddHttpContextAccessor();
+            services.AddSimpleAuth(useJwt);
+            services.AddDbContext<IdentityDatabaseContext>(userStoreOptions, ServiceLifetime.Transient);
+            services.AddIdentity<User, Role>(options =>
             {
-                //TODO - Lowercase Swagger Documents
-                //c.DocumentFilter<LowercaseDocumentFilter>();
-                //Refer - https://gist.github.com/rafalkasa/01d5e3b265e5aa075678e0adfd54e23f
-
-                // include all project's xml comments
-                var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                if (identityOptions != null)
                 {
-                    if (!assembly.IsDynamic)
-                    {
-                        var xmlFile = $"{assembly.GetName().Name}.xml";
-                        var xmlPath = Path.Combine(baseDirectory, xmlFile);
-                        if (File.Exists(xmlPath))
-                        {
-                            c.IncludeXmlComments(xmlPath);
-                        }
-                    }
+                    identityOptions(options);
                 }
-              
-                c.SwaggerDoc("v1", openApiInfo??new OpenApiInfo
+                else
                 {
-                    Version = "v1",
-                    Title = "SIMPLE JWT API"
-                });    
+                    options.SignIn.RequireConfirmedEmail = false;
+                }
 
-                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                {
-                    Name = "Authorization",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer",
-                    BearerFormat = "JWT",
-                    Description = "Input your Bearer token in this format - Bearer {your token here} to access this API",
-                });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-            {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer",
-                    },
-                    Scheme = "Bearer",
-                    Name = "Bearer",
-                    In = ParameterLocation.Header,
-                }, new List<string>()
-            },
-            });
-            });
+            })
+              .AddDefaultTokenProviders()
+              .AddEntityFrameworkStores<IdentityDatabaseContext>();
+            services.AddScoped<IUserService, UserService>()
+                 .AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IUserClaimsPrincipalFactory<User>, SimpleClaimsPrincipalFactory>();
             return services;
         }
     }
